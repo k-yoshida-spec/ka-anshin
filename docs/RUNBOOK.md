@@ -55,7 +55,7 @@ Wix CMS コレクション Inquiries
 | `tools/source_extract.py` / `source_diff.py` | 更新資料（pptx/docx/xlsx/pdf/txt/md）の抽出と、同じ形式の前回分（`sources/last-<形式>.json`）との差分 |
 | `tools/check_update_record.py` | PR に承認済みの更新リストがあるかの検査（Actions） |
 | `docs/updates/` | 更新リストと承認の記録（`TEMPLATE.md` が雛形） |
-| `tools/update_list_export.py` | 更新リストをクライアント送付用の Word（印刷・署名）と Excel（項目ごとに承認／除外／修正を選べる）にする。出力先 `送付用/`（Git 対象外）。社内向けの行（比較の基準）は載せない |
+| `tools/update_list_export.py` | 更新リストをクライアント送付用の Word（印刷・署名、変更後の横に手書きできる「修正依頼」欄）と Excel（変更後の横に「修正依頼」記入欄、項目ごとに承認／除外／修正を選べる）にする。出力先 `送付用/`（Git 対象外）。社内向けの行（比較の基準）は載せない |
 | `tools/content_diff.py` | サイトの「変更前→変更後」一覧（文章キー＋テンプレートの変更行） |
 | `sources/last-<形式>.json` | 最後にサイトへ反映した資料のテキスト（形式ごとの差分の基準） |
 | `tools/check.py` | 公開前チェック。1280px と 390px で全ページを開き、JSエラー・横はみ出し・画像切れ・カスタムエレメントの高さを検査。失敗なら終了コード1 |
