@@ -55,6 +55,7 @@ Wix CMS コレクション Inquiries
 | `tools/source_extract.py` / `source_diff.py` | 更新資料（pptx/docx/xlsx/pdf/txt/md）の抽出と、同じ形式の前回分（`sources/last-<形式>.json`）との差分 |
 | `tools/check_update_record.py` | PR に承認済みの更新リストがあるかの検査（Actions） |
 | `docs/updates/` | 更新リストと承認の記録（`TEMPLATE.md` が雛形） |
+| `tools/update_list_export.py` | 更新リストをクライアント送付用の Word（印刷・署名、変更後の横に手書きできる「修正依頼」欄）と Excel（変更後の横に「修正依頼」記入欄、項目ごとに承認／除外／修正を選べる）にする。出力先 `送付用/`（Git 対象外）。社内向けの行（比較の基準）は載せない |
 | `tools/content_diff.py` | サイトの「変更前→変更後」一覧（文章キー＋テンプレートの変更行） |
 | `sources/last-<形式>.json` | 最後にサイトへ反映した資料のテキスト（形式ごとの差分の基準） |
 | `tools/check.py` | 公開前チェック。1280px と 390px で全ページを開き、JSエラー・横はみ出し・画像切れ・カスタムエレメントの高さを検査。失敗なら終了コード1 |
@@ -73,7 +74,7 @@ Wix CMS コレクション Inquiries
 |---|---|---|---|
 | ① 資料を渡す | 薫さん | チャットに貼る、または `Documents\github\ka-anshin\PP\` に置いて「Aサイトを更新して」 | — |
 | ② 差分を出す | Claude | `source_extract.py` で抽出し、同じ形式の前回分 `sources/last-<形式>.json` と `source_diff.py` で比較。前回分が無い形式・メモ・画像は、資料と今のサイトを直接突き合わせる | — |
-| ③ 更新リストを作る | Claude | `docs/updates/YYYYMMDD-<資料名>.md`（雛形 `TEMPLATE.md`）に No・ページ/場所・変更前・変更後・根拠・判断（反映/保留/要確認）と「確認したいこと」を書き、チャットで提示 | 更新リスト |
+| ③ 更新リストを作る | Claude | `docs/updates/YYYYMMDD-<資料名>.md`（雛形 `TEMPLATE.md`）に No・ページ/場所・変更前・変更後・根拠・判断（反映/保留/要確認）と「確認したいこと」を書き、`update_list_export.py` でクライアント送付用の Word・Excel（`送付用/`）を作ってチャットで提示 | 更新リスト（md＋docx＋xlsx） |
 | ④ **承認①：内容の承認** | 薫さん | 更新リストを見て「全件承認」または「No.○は除外／こう直す」と返信 | 承認者・承認日・承認の内容をリストに記入 |
 | ⑤ 反映 | Claude | 承認された項目だけを `content/a.json`／`src/template.html` に反映。`build.py` → `content_diff.py` の結果が承認リストと一致することを確認。基準 `sources/last-<形式>.json` を更新 | — |
 | ⑥ PR | Claude | 更新リストと実際の変更一覧を本文にして PR。Actions が「承認済みの更新リストがあるか」＋ビルド＋画面チェック | PR |
@@ -89,7 +90,9 @@ T=$(tr -d ' \r\n' < gh_token.txt); A="Authorization: Basic $(printf 'x-access-to
 rm -f .git/*.lock; git -c http.extraHeader="$A" fetch -q origin && git checkout -q -B update-YYYYMMDD origin/main
 python3 tools/source_extract.py "PP/<資料>" /tmp/new.json          # pptx/docx/xlsx/pdf/txt/md
 python3 tools/source_diff.py sources/last-<形式>.json /tmp/new.json
-cp docs/updates/TEMPLATE.md docs/updates/YYYYMMDD-<資料名>.md       # ③ 更新リストを書く → ④ 承認を記入
+cp docs/updates/TEMPLATE.md docs/updates/YYYYMMDD-<資料名>.md       # ③ 更新リストを書く
+python3 tools/update_list_export.py docs/updates/YYYYMMDD-<資料名>.md   # 送付用/ に Word・Excel（承認欄は空欄＝クライアント記入用）
+# ④ 承認を受けたら md の承認欄に記入（必要なら再度エクスポートして控えを送る）
 # ⑤ 反映（キー探し: grep -n "<今の文言>" content/a.json／金額・リンクは src/template.html）
 python3 tools/build.py && python3 tools/content_diff.py origin/main > /tmp/diff.md
 cp /tmp/new.json sources/last-<形式>.json
@@ -110,6 +113,20 @@ git add -A && git commit -m "更新: <資料名>" && git -c http.extraHeader="$A
 - Word（見出しで節分け・表も取得）、Excel（シートごと）、PDF（ページごと。表の文字を取りこぼすことがある）、Markdown/テキストの抽出を確認。前回分が無い形式は「比較なし」と出ることを確認。
 - `content_diff.py` が文章キーの変更とテンプレート（金額）の変更を一覧に出すことを確認。
 - `check_update_record.py`：更新リスト無し→NG、承認日（承認者）空欄→NG、承認済み→OK を確認。
+- 本番1回目（2026-11-02）：「A 安心・安全 サービスのご案内 2.pptx」でスライド9の3か所（基本・フルのカウンセリング24→12時間、フル 350,000→350,000～）を検出し、更新リスト `docs/updates/20261102-service-guide-2.md` と送付用 Word・Excel（修正依頼欄つき）を作成。Word・Excel は PDF 化して表示を確認。
+
+### 4-4. クライアント送付用の更新リスト（Word・Excel）
+
+`python3 tools/update_list_export.py docs/updates/<名前>.md` で `送付用/<名前>.docx` と `.xlsx` を作る（毎回、承認①の前に作ってチャットにも添付）。
+
+| 形式 | 列・欄 | 用途 |
+|---|---|---|
+| Word（A4横） | No／ページ・場所／変更前／変更後／**修正依頼（ご記入欄、手書き用に行高 約1.6cm）**／根拠／判断、確認したいこと、ご承認（承認日・ご署名・□全件承認 □修正依頼あり・その他のご意見） | 印刷・署名、PDF で送付 |
+| Excel | 同じ表＋**修正依頼（ご記入欄）**と**ご回答（承認／除外／修正のプルダウン）**の黄色列、回答の集計（COUNTIF）、ご承認欄 | 項目ごとに回答してもらう |
+
+- 送付用には社内向けの行（比較の基準）と社内用語（承認①、キー名、ファイル名）を出さない。「確認したいこと」は丁寧語で書く。
+- 作成後は `soffice --headless --convert-to pdf` で PDF にして崩れがないか見る（Excel の式は `recalc.py` 相当で errors 0 を確認済み）。
+- クライアントから記入済みの Word／Excel が戻ったら、その内容を md の「承認」欄（承認者・承認日・承認の内容）と修正内容に写し、承認①とする。
 
 ## 5. フォーム（お問い合わせ）
 
