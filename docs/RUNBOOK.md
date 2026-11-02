@@ -52,9 +52,11 @@ Wix CMS コレクション Inquiries
 | `src/ce_submit.js` | フォーム送信部分（入力チェック → `ka-submit` イベント → 15秒で応答なしならエラー表示） |
 | `assets/img/` | 画像（webp/jpg、文字なし） |
 | `tools/build.py` | `dist/index.html`（単体ページ）・`dist/ka-anshin.js`（カスタムエレメント）・`dist/img/`・`dist/test-ce.html` を生成 |
-| `tools/ppt_extract.py` / `ppt_diff.py` | PP の本文・ノート抽出と、前回反映分（`ppt/last.json`）との差分 |
+| `tools/source_extract.py` / `source_diff.py` | 更新資料（pptx/docx/xlsx/pdf/txt/md）の抽出と、同じ形式の前回分（`sources/last-<形式>.json`）との差分 |
+| `tools/check_update_record.py` | PR に承認済みの更新リストがあるかの検査（Actions） |
+| `docs/updates/` | 更新リストと承認の記録（`TEMPLATE.md` が雛形） |
 | `tools/content_diff.py` | サイトの「変更前→変更後」一覧（文章キー＋テンプレートの変更行） |
-| `ppt/last.json` | 最後にサイトへ反映した PP のテキスト（差分の基準） |
+| `sources/last-<形式>.json` | 最後にサイトへ反映した資料のテキスト（形式ごとの差分の基準） |
 | `tools/check.py` | 公開前チェック。1280px と 390px で全ページを開き、JSエラー・横はみ出し・画像切れ・カスタムエレメントの高さを検査。失敗なら終了コード1 |
 | `.github/workflows/deploy.yml` | PR：ビルド＋チェック＋スクリーンショット添付／main：GitHub Pages へ公開 |
 
@@ -63,54 +65,51 @@ Wix CMS コレクション Inquiries
 - 画像は単体ページでは相対パス `img/…`、カスタムエレメントでは `KA_B + "img/…"`（`KA_B` は `document.currentScript.src` の場所。取れなければ `--base`／環境変数 `KA_BASE`）。
 - CSS は `:root` → `.kroot`、`body` → `.kroot` に置換して Shadow DOM 内で効かせる。
 
-## 4. 定常作業：PP（更新資料）からページ更新まで
+## 4. 定常作業：更新資料からページ更新まで（更新リスト＋2段階承認）
 
-薫さんの作業は ①PPを渡す ③一覧を確認してマージ の2つ。②④は Claude（スキル `a-site-update`）が行う。
+**どの更新も必ず「更新リスト」を作り、薫さんの承認を2回通す。** 資料の形式は問わない（PP・Word・Excel・PDF・テキスト／チャットのメモ・画像・Claude Docs）。
 
-| 段階 | 誰 | やること | 使う道具 |
+| 段階 | 誰 | やること | 記録 |
 |---|---|---|---|
-| ① 渡す | 薫さん | PP をチャットに貼る、または `Documents\github\ka-anshin\PP\` に置いて「Aサイトを更新して」 | — |
-| ② 差分を出す | Claude | PP を抽出し、前回反映分 `ppt/last.json` と比べる | `tools/ppt_extract.py` `tools/ppt_diff.py` |
-| ③ 反映案を作る | Claude | 作業ブランチで `content/a.json`（文章）と、必要なら `src/template.html`（金額・リンク・構成）を直す | — |
-| ④ 確認材料を作る | Claude | ビルド → 「変更前→変更後」一覧 → push → PR（一覧を本文に）→ Actions の自動チェック合格を確認 | `tools/build.py` `tools/content_diff.py` |
-| ⑤ 承認 | 薫さん | 一覧を読み、PR を「Merge pull request」→「Confirm merge」 | — |
-| ⑥ 公開確認 | Claude | Cloudflare の公開完了後、`https://ka-anshin.pages.dev/test-ce.html` で新しい文言が出ることを確認 | Chrome |
+| ① 資料を渡す | 薫さん | チャットに貼る、または `Documents\github\ka-anshin\PP\` に置いて「Aサイトを更新して」 | — |
+| ② 差分を出す | Claude | `source_extract.py` で抽出し、同じ形式の前回分 `sources/last-<形式>.json` と `source_diff.py` で比較。前回分が無い形式・メモ・画像は、資料と今のサイトを直接突き合わせる | — |
+| ③ 更新リストを作る | Claude | `docs/updates/YYYYMMDD-<資料名>.md`（雛形 `TEMPLATE.md`）に No・ページ/場所・変更前・変更後・根拠・判断（反映/保留/要確認）と「確認したいこと」を書き、チャットで提示 | 更新リスト |
+| ④ **承認①：内容の承認** | 薫さん | 更新リストを見て「全件承認」または「No.○は除外／こう直す」と返信 | 承認者・承認日・承認の内容をリストに記入 |
+| ⑤ 反映 | Claude | 承認された項目だけを `content/a.json`／`src/template.html` に反映。`build.py` → `content_diff.py` の結果が承認リストと一致することを確認。基準 `sources/last-<形式>.json` を更新 | — |
+| ⑥ PR | Claude | 更新リストと実際の変更一覧を本文にして PR。Actions が「承認済みの更新リストがあるか」＋ビルド＋画面チェック | PR |
+| ⑦ **承認②：公開の承認** | 薫さん | PR を確認して「Merge pull request」→「Confirm merge」 | GitHub のマージ記録 |
+| ⑧ 公開確認 | Claude | `https://ka-anshin.pages.dev/test-ce.html` で新しい文言を確認し、報告 | — |
 
-### 4-1. コマンド（薫さんの PC 上、`$HOME/mnt/ka-anshin` で実行）
+承認①の無い PR は、Actions の `tools/check_update_record.py` が止める（`content/` `src/` `assets/` を変える PR に、承認者・承認日・No.1 以降の表を持つ `docs/updates/YYYYMMDD-*.md` が必要）。
+
+### 4-1. コマンド（薫さんの PC 上、`$HOME/mnt/ka-anshin`）
 
 ```bash
-# 準備（毎回）
 T=$(tr -d ' \r\n' < gh_token.txt); A="Authorization: Basic $(printf 'x-access-token:%s' "$T" | base64 -w0)"
-git -c http.extraHeader="$A" fetch -q origin && git checkout -q -B update-YYYYMMDD origin/main
-
-# ② 差分
-python3 tools/ppt_extract.py "PP/<新しいPP>.pptx" /tmp/new.json
-python3 tools/ppt_diff.py ppt/last.json /tmp/new.json      # 「変更なし」なら終了（薫さんに報告）
-
-# ③ 反映：差分を読んで content/a.json の該当キーを書き換える
-#    キーの探し方: grep -n "<今の文言の一部>" content/a.json
-#    金額などの数字だけの文字列・リンク先は src/template.html にある（grep で探す）
-#    反映し終えたら基準を更新: cp /tmp/new.json ppt/last.json
-
-# ④ 確認材料
-python3 tools/build.py                       # 未定義キー・空文字・記号の残りがあれば失敗
-python3 tools/content_diff.py origin/main > /tmp/diff.md   # PR本文と薫さんへの一覧
-git add -A && git commit -m "PP反映: <資料名>" && git -c http.extraHeader="$A" push -u origin update-YYYYMMDD
-# PR作成: POST https://api.github.com/repos/k-yoshida-spec/ka-anshin/pulls  body=/tmp/diff.md
-# Actions: GET /repos/k-yoshida-spec/ka-anshin/actions/runs?per_page=3 で conclusion=success を確認
+rm -f .git/*.lock; git -c http.extraHeader="$A" fetch -q origin && git checkout -q -B update-YYYYMMDD origin/main
+python3 tools/source_extract.py "PP/<資料>" /tmp/new.json          # pptx/docx/xlsx/pdf/txt/md
+python3 tools/source_diff.py sources/last-<形式>.json /tmp/new.json
+cp docs/updates/TEMPLATE.md docs/updates/YYYYMMDD-<資料名>.md       # ③ 更新リストを書く → ④ 承認を記入
+# ⑤ 反映（キー探し: grep -n "<今の文言>" content/a.json／金額・リンクは src/template.html）
+python3 tools/build.py && python3 tools/content_diff.py origin/main > /tmp/diff.md
+cp /tmp/new.json sources/last-<形式>.json
+git add -A && git commit -m "更新: <資料名>" && git -c http.extraHeader="$A" push -u origin update-YYYYMMDD
+# ⑥ PR: POST /repos/k-yoshida-spec/ka-anshin/pulls（body＝更新リスト＋/tmp/diff.md）→ Actions の success を確認
 ```
 
 ### 4-2. 判断のルール
 
-- PP の文章とサイトの文章は 1対1 ではない。PP の**意味の変更**（サービス名、提供内容、料金・時間、資格、表現の方針）をサイトの該当箇所に反映する。言い回しだけの違いは反映しない。
-- どのキーをどう変えたかは必ず「変更前→変更後」一覧で薫さんに見せ、マージ（公開）は薫さんだけが行う。
-- 迷う箇所（PP にあってサイトに置き場がない、サイトにあって PP から消えた）は、勝手に足し引きせず一覧の下に「確認したいこと」として書く。
-- 1回の PR は1つの資料分。表示崩れは Actions の `tools/check.py`（1280px/390px、JSエラー、はみ出し、画像、カスタムエレメント）で止まる。
-- 公開後に問題があれば PR の「Revert」で戻す（6章）。
+- 資料とサイトの文章は 1対1 ではない。**意味の変更**（サービス名、提供内容、料金・時間、資格、表現の方針）だけを更新リストに載せる。言い回しだけの違いは載せない。
+- 置き場が合わない・資料から消えた・読み取りが不確か（PDF の表、画像）なものは「要確認」にして勝手に反映しない。
+- 承認①で除外・修正された内容はリストの「承認の内容」に残し、その通りに反映する。承認後にリスト外の変更を足さない（足すなら承認①からやり直す）。
+- 1回の PR は1つの資料分。公開後の問題は PR の「Revert」で戻す（6章）。
 
-### 4-3. 検証記録
+### 4-3. 検証記録（2026-11-02）
 
-- 2026-11-02：「A 安心・安全 サービスのご案内 1.pptx」（11枚）を抽出し `ppt/last.json` を基準として登録。同一資料の差分＝「変更なし」、1行変更＝該当スライドの差分が出ること、文章キー変更・テンプレート（金額）変更が `content_diff.py` の一覧に出ることを確認。
+- PP（11枚）を抽出して `sources/last-pptx.json` を基準に登録。同一資料＝「変更なし」、1行変更＝該当スライドの差分が出ることを確認。
+- Word（見出しで節分け・表も取得）、Excel（シートごと）、PDF（ページごと。表の文字を取りこぼすことがある）、Markdown/テキストの抽出を確認。前回分が無い形式は「比較なし」と出ることを確認。
+- `content_diff.py` が文章キーの変更とテンプレート（金額）の変更を一覧に出すことを確認。
+- `check_update_record.py`：更新リスト無し→NG、承認日（承認者）空欄→NG、承認済み→OK を確認。
 
 ## 5. フォーム（お問い合わせ）
 

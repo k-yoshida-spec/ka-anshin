@@ -16,6 +16,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
@@ -23,6 +25,9 @@ jobs:
         run: |
           pip install playwright==1.48.0
           python -m playwright install --with-deps chromium
+      - name: 承認済みの更新リストがあるか（PRのみ）
+        if: github.event_name == 'pull_request'
+        run: python tools/check_update_record.py origin/${{ github.base_ref }}
       - name: Build
         run: python tools/build.py --base https://k-yoshida-spec.github.io/ka-anshin/
       - name: Check (エラー・はみ出し・画像・カスタムエレメント)
