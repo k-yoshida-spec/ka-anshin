@@ -1,5 +1,6 @@
 # 更新リスト：<資料名>（YYYY-MM-DD）
 
+- 対象サイト：www.ak-analytics.jp「安心・安全」ページ
 - 更新資料：<ファイル名>（形式：pptx / docx / xlsx / pdf / メモ など）
 - 比較の基準：sources/last-<形式>.json（無い場合は「今のサイトと直接突き合わせ」）
 
