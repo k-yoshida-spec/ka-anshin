@@ -52,6 +52,9 @@ Wix CMS コレクション Inquiries
 | `src/ce_submit.js` | フォーム送信部分（入力チェック → `ka-submit` イベント → 15秒で応答なしならエラー表示） |
 | `assets/img/` | 画像（webp/jpg、文字なし） |
 | `tools/build.py` | `dist/index.html`（単体ページ）・`dist/ka-anshin.js`（カスタムエレメント）・`dist/img/`・`dist/test-ce.html` を生成 |
+| `tools/ppt_extract.py` / `ppt_diff.py` | PP の本文・ノート抽出と、前回反映分（`ppt/last.json`）との差分 |
+| `tools/content_diff.py` | サイトの「変更前→変更後」一覧（文章キー＋テンプレートの変更行） |
+| `ppt/last.json` | 最後にサイトへ反映した PP のテキスト（差分の基準） |
 | `tools/check.py` | 公開前チェック。1280px と 390px で全ページを開き、JSエラー・横はみ出し・画像切れ・カスタムエレメントの高さを検査。失敗なら終了コード1 |
 | `.github/workflows/deploy.yml` | PR：ビルド＋チェック＋スクリーンショット添付／main：GitHub Pages へ公開 |
 
@@ -60,27 +63,54 @@ Wix CMS コレクション Inquiries
 - 画像は単体ページでは相対パス `img/…`、カスタムエレメントでは `KA_B + "img/…"`（`KA_B` は `document.currentScript.src` の場所。取れなければ `--base`／環境変数 `KA_BASE`）。
 - CSS は `:root` → `.kroot`、`body` → `.kroot` に置換して Shadow DOM 内で効かせる。
 
-## 4. 定常作業：文章を更新する（PP 反映など）
+## 4. 定常作業：PP（更新資料）からページ更新まで
 
-1. 薫さんが新しい PP（または修正メモ）を `Documents\github\ka-anshin` に置き、Claude に依頼。
-2. Claude：
-   1. python-pptx で全スライドの本文とノートを抽出し、前回分と比べて変更点を洗い出す。
-   2. `git fetch` → `origin/main` から作業ブランチを作成。
-   3. `content/a.json` の該当キーを書き換える（構造が変わる場合のみ `src/template.html` も）。
-   4. `python3 tools/build.py && python3 tools/check.py` が合格することを確認。
-   5. push して PR を作成。PR 本文に「変更前 → 変更後」の一覧を書く。
-3. 薫さん：一覧を確認し、Checks が緑なら「Merge pull request」→「Confirm merge」。
-4. 数分後、https://ka-anshin.pages.dev/test-ce.html と公開中の Wix ページで反映を確認。
+薫さんの作業は ①PPを渡す ③一覧を確認してマージ の2つ。②④は Claude（スキル `a-site-update`）が行う。
 
-Claude から GitHub へのアクセス（薫さんの PC 上で実行）：
+| 段階 | 誰 | やること | 使う道具 |
+|---|---|---|---|
+| ① 渡す | 薫さん | PP をチャットに貼る、または `Documents\github\ka-anshin\PP\` に置いて「Aサイトを更新して」 | — |
+| ② 差分を出す | Claude | PP を抽出し、前回反映分 `ppt/last.json` と比べる | `tools/ppt_extract.py` `tools/ppt_diff.py` |
+| ③ 反映案を作る | Claude | 作業ブランチで `content/a.json`（文章）と、必要なら `src/template.html`（金額・リンク・構成）を直す | — |
+| ④ 確認材料を作る | Claude | ビルド → 「変更前→変更後」一覧 → push → PR（一覧を本文に）→ Actions の自動チェック合格を確認 | `tools/build.py` `tools/content_diff.py` |
+| ⑤ 承認 | 薫さん | 一覧を読み、PR を「Merge pull request」→「Confirm merge」 | — |
+| ⑥ 公開確認 | Claude | Cloudflare の公開完了後、`https://ka-anshin.pages.dev/test-ce.html` で新しい文言が出ることを確認 | Chrome |
+
+### 4-1. コマンド（薫さんの PC 上、`$HOME/mnt/ka-anshin` で実行）
+
+```bash
+# 準備（毎回）
+T=$(tr -d ' \r\n' < gh_token.txt); A="Authorization: Basic $(printf 'x-access-token:%s' "$T" | base64 -w0)"
+git -c http.extraHeader="$A" fetch -q origin && git checkout -q -B update-YYYYMMDD origin/main
+
+# ② 差分
+python3 tools/ppt_extract.py "PP/<新しいPP>.pptx" /tmp/new.json
+python3 tools/ppt_diff.py ppt/last.json /tmp/new.json      # 「変更なし」なら終了（薫さんに報告）
+
+# ③ 反映：差分を読んで content/a.json の該当キーを書き換える
+#    キーの探し方: grep -n "<今の文言の一部>" content/a.json
+#    金額などの数字だけの文字列・リンク先は src/template.html にある（grep で探す）
+#    反映し終えたら基準を更新: cp /tmp/new.json ppt/last.json
+
+# ④ 確認材料
+python3 tools/build.py                       # 未定義キー・空文字・記号の残りがあれば失敗
+python3 tools/content_diff.py origin/main > /tmp/diff.md   # PR本文と薫さんへの一覧
+git add -A && git commit -m "PP反映: <資料名>" && git -c http.extraHeader="$A" push -u origin update-YYYYMMDD
+# PR作成: POST https://api.github.com/repos/k-yoshida-spec/ka-anshin/pulls  body=/tmp/diff.md
+# Actions: GET /repos/k-yoshida-spec/ka-anshin/actions/runs?per_page=3 で conclusion=success を確認
 ```
-T=$(tr -d ' \r\n' < gh_token.txt)
-A="Authorization: Basic $(printf 'x-access-token:%s' "$T" | base64 -w0)"
-git -c http.extraHeader="$A" push -u origin <branch>
-# PR作成は REST API: POST https://api.github.com/repos/k-yoshida-spec/ka-anshin/pulls（Bearer $T）
-```
-- キーの値はチャットに出さない・リポジトリに入れない。
-- 連携フォルダでは git がロックファイルを消すため、セッションごとに「削除の許可」が必要。
+
+### 4-2. 判断のルール
+
+- PP の文章とサイトの文章は 1対1 ではない。PP の**意味の変更**（サービス名、提供内容、料金・時間、資格、表現の方針）をサイトの該当箇所に反映する。言い回しだけの違いは反映しない。
+- どのキーをどう変えたかは必ず「変更前→変更後」一覧で薫さんに見せ、マージ（公開）は薫さんだけが行う。
+- 迷う箇所（PP にあってサイトに置き場がない、サイトにあって PP から消えた）は、勝手に足し引きせず一覧の下に「確認したいこと」として書く。
+- 1回の PR は1つの資料分。表示崩れは Actions の `tools/check.py`（1280px/390px、JSエラー、はみ出し、画像、カスタムエレメント）で止まる。
+- 公開後に問題があれば PR の「Revert」で戻す（6章）。
+
+### 4-3. 検証記録
+
+- 2026-11-02：「A 安心・安全 サービスのご案内 1.pptx」（11枚）を抽出し `ppt/last.json` を基準として登録。同一資料の差分＝「変更なし」、1行変更＝該当スライドの差分が出ること、文章キー変更・テンプレート（金額）変更が `content_diff.py` の一覧に出ることを確認。
 
 ## 5. フォーム（お問い合わせ）
 
@@ -117,6 +147,7 @@ git -c http.extraHeader="$A" push -u origin <branch>
 - [ ] UptimeRobot で `https://ka-anshin.pages.dev/ka-anshin.js` を監視
 - [ ] お問い合わせのメール通知（Wix オートメーション）
 - [ ] キー `ka-anshin-claude` の更新（期限 2027-01-31 の前）
+- [ ] 薫さん PC に Playwright が無いため `check.py` は GitHub Actions で実行（ローカルは build.py まで）
 - [ ] 高画質キャラ画像の差し替え（ビーバー・フクロウの困り顔、全員の笑顔）
 
 かんたん手順書（薫さん向け）：Claude Docs「Aページ更新 かんたん手順書」 https://claude.ai/artifact/CKWRAT6wt8RzUF7dYS8Br9
