@@ -1,0 +1,5 @@
+gh_token*
+dist/
+shots/
+__pycache__/
+*.pptx
