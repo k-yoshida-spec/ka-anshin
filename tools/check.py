@@ -21,7 +21,11 @@ async def main():
       await pg.add_style_tag(content='header{position:static!important}')
       ids=await pg.eval_on_selector_all('[data-go]','e=>[...new Set(e.map(x=>x.dataset.go))]')
       for g in ids:
-        await pg.evaluate("g=>[...document.querySelectorAll('[data-go]')].find(e=>e.dataset.go===g).click()",g); await pg.wait_for_timeout(400)
+        js="g=>{const e=[...document.querySelectorAll('[data-go]')].find(e=>e.dataset.go===g);if(e){e.click();return true}return false}"
+        if not await pg.evaluate(js,g):   # 今の画面にその移動先が無ければ、入口に戻ってから探す
+          await pg.goto(U+'index.html'); await pg.wait_for_timeout(800); await pg.add_style_tag(content='header{position:static!important}')
+          if not await pg.evaluate(js,g): bad.append(f'{w}px {g}: 移動先が見つからない'); continue
+        await pg.wait_for_timeout(400)
         ov=await pg.evaluate('document.documentElement.scrollWidth-innerWidth')
         if ov>1: bad.append(f'{w}px {g}: 横にはみ出し {ov}px')
         broken=await pg.evaluate('[...document.images].filter(i=>i.complete&&i.offsetParent&&!i.naturalWidth).map(i=>i.src.slice(-40))')
