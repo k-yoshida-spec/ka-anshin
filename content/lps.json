@@ -1,0 +1,74 @@
+[
+ {
+  "name": "lp-stress",
+  "no": "A-01",
+  "stage": "予防",
+  "title": "ストレスチェックの運用支援",
+  "text": "計画から結果の活用、経営層への報告まで",
+  "catch": "ストレスチェックを、\n実施して終わりにしない。",
+  "chara": "dog",
+  "for": [],
+  "url": "https://lp-stress.ak-analytics.jp/",
+  "published": true
+ },
+ {
+  "name": "lp-harassment",
+  "no": "A-02",
+  "stage": "予防",
+  "title": "社員ヒアリング",
+  "text": "社内では難しい「中立な聴き取り」を担います",
+  "catch": "中立な聴き取りは、\n社外の専門家だからできる。",
+  "chara": "bear",
+  "for": [],
+  "url": "https://lp-harassment.ak-analytics.jp/",
+  "published": true
+ },
+ {
+  "name": "lp-linecare",
+  "no": "A-03",
+  "stage": "研修",
+  "title": "ラインケア研修（管理職向け）",
+  "text": "気づく・声をかける・聴く・つなぐを90分で",
+  "catch": "部下の変化に、\n気づける管理職へ。",
+  "chara": "owl",
+  "for": [],
+  "url": "https://lp-linecare.ak-analytics.jp/",
+  "published": true
+ },
+ {
+  "name": "lp-selfcare",
+  "no": "A-04",
+  "stage": "研修",
+  "title": "セルフケア研修（社員向け）",
+  "text": "ストレスの仕組みと対処法を、体験ワークで",
+  "catch": "自分の変化に、\n自分で気づく。",
+  "chara": "fox",
+  "for": [],
+  "url": "https://lp-selfcare.ak-analytics.jp/",
+  "published": true
+ },
+ {
+  "name": "lp-counseling",
+  "no": "A-05",
+  "stage": "個別支援",
+  "title": "社員向けカウンセリング",
+  "text": "不調がなくても使える、利害関係のない対話",
+  "catch": "社内では言えないことを、\n話せる場所を。",
+  "chara": "cat",
+  "for": [],
+  "url": "https://lp-counseling.ak-analytics.jp/",
+  "published": true
+ },
+ {
+  "name": "lp-mentoring",
+  "no": "A-06",
+  "stage": "個別支援",
+  "title": "担当者の伴走（メンタリング）",
+  "text": "ひとりで抱える担当者の「社外の同僚」に",
+  "catch": "担当者が、\nひとりで抱えなくていいように。",
+  "chara": "rabbit",
+  "for": [],
+  "url": "https://lp-mentoring.ak-analytics.jp/",
+  "published": true
+ }
+]

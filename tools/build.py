@@ -21,6 +21,9 @@ def tr(m):
     if k not in text: errs.append('文章データに無いキー: '+k); return ''
     if not str(text[k]).strip(): errs.append('空の文章: '+k)
     return str(text[k])
+lpf=ROOT/'content/lps.json'
+LPC=json.loads(lpf.read_text(encoding='utf-8')) if lpf.exists() else []
+tpl=tpl.replace('⟦@LP_CATALOG⟧',json.dumps(LPC,ensure_ascii=False))
 page=re.sub('⟦([^⟧]+)⟧',tr,tpl)
 unused={k for k in set(text)-set(re.findall('⟦([^⟧]+)⟧',tpl)) if not k.startswith('meta.')}
 if unused: print('注意: テンプレートで使われていないキー', sorted(unused)[:20])
@@ -63,4 +66,10 @@ out=(hdr+'const KA_B=(document.currentScript&&document.currentScript.src)?new UR
      +'function run(document,R){\n'+script+'\n}\n'+(ROOT/'src/ce_footer.js').read_text(encoding='utf-8'))
 (D/'ka-anshin.js').write_text(out,encoding='utf-8')
 (D/'test-ce.html').write_text('<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>body{margin:0;font-family:sans-serif}</style></head><body><ka-anshin></ka-anshin><script src="ka-anshin.js"></script></body></html>\n',encoding='utf-8')
+# 3) 検索向けの構造化データ（Wix のページ設定「構造化データ」に貼る）
+ld={'@context':'https://schema.org','@type':'ItemList','name':text.get('meta.title','職場のメンタルヘルス対策（ストレスチェック・研修・カウンセリング）｜新潟のK&Aプロジェクト'),
+    'itemListElement':[{'@type':'ListItem','position':i+1,'item':{'@type':'Service','name':c['title'],'description':c['text'],'url':c['url'],
+        'serviceType':c['stage'],'areaServed':'新潟県','provider':{'@type':'Organization','name':'合同会社K&Aプロジェクト','url':'https://www.ak-analytics.jp/'}}}
+        for i,c in enumerate([c for c in LPC if c['published']])]}
+(D/'seo-jsonld.json').write_text(json.dumps(ld,ensure_ascii=False,indent=1)+'\n',encoding='utf-8')
 print('ok', {p.name:p.stat().st_size for p in D.iterdir() if p.is_file()})
