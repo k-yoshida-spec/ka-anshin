@@ -401,6 +401,11 @@ body.story-open{overflow:hidden}
 .story-end[hidden]{display:none}
 
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+/* スマホ・タブレットでの見やすさ・押しやすさ（2026-11 見直し・更新リスト 20261110-mobile） */
+@media(max-width:860px){.contact-grid{grid-template-columns:1fr}}
+.who,.tab,.menu-btn,.brand{min-height:44px}
+.textlink{display:inline-flex;align-items:center;min-height:44px}
+.pill,.min,.live,.chat-note,.msg small,.brand-name small,.trust li small,.certs span,.for{font-size:12px}
 </style>
 
 <div class="proto"><div class="wrap"><b>⟦page.001⟧</b><span>⟦page.002⟧</span>
