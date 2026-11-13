@@ -1,5 +1,6 @@
 """PR の承認記録チェック（GitHub Actions で実行）。
-サイトの中身（content/ src/ assets/）を変える PR には、承認済みの更新リスト docs/updates/YYYYMMDD-*.md が必要。
+サイトの中身（content/ src/ assets/）を変える PR には、更新リスト docs/updates/YYYYMMDD-*.md が必要。
+重要度（2026-11-13〜）：「- 重要度：小」「- 重要度：中」は承認不要（記録だけ）。「- 重要度：高」と、重要度の書いていない更新リストは、承認者・承認日が必要。
   python3 tools/check_update_record.py <比較元 ref（例 origin/main）>
 """
 import re, sys, subprocess, pathlib
@@ -13,8 +14,9 @@ if not recs:
 ng = []
 for f in recs:
     t = pathlib.Path(f).read_text(encoding='utf-8')
+    if not re.search(r'^\|\s*1\s*\|', t, re.M): ng.append(f'{f}：更新リストの表（No.1〜）がない')
+    if re.search(r'^- 重要度：[ \t]*(小|中)', t, re.M): continue   # 小・中は承認不要
     if not re.search(r'^- 更新リスト承認者：[ \t]*\S+', t, re.M): ng.append(f'{f}：承認者が空欄')
     if not re.search(r'^- 更新リスト承認日：[ \t]*\d{4}-\d{2}-\d{2}', t, re.M): ng.append(f'{f}：承認日が空欄')
-    if not re.search(r'^\|\s*1\s*\|', t, re.M): ng.append(f'{f}：更新リストの表（No.1〜）がない')
 if ng: print('NG：\n' + '\n'.join(ng)); sys.exit(1)
-print('OK：承認済みの更新リスト ' + ', '.join(recs))
+print('OK：更新リスト（承認済み、または重要度 小・中） ' + ', '.join(recs))
