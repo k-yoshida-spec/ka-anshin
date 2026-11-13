@@ -37,6 +37,14 @@ section{padding-block:76px;position:relative}
 .chap{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--sage-ink)}
 .chap b{font-family:var(--serif);width:32px;height:32px;border-radius:50%;border:1.5px solid var(--sage);display:grid;place-items:center;letter-spacing:0;font-size:13px}
 
+#reading{background:var(--wash)}
+.rd-h{font-size:17px;margin:26px 0 12px}
+.rd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;align-items:start}
+.rd-card{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;text-decoration:none;color:inherit;line-height:1.6;font-weight:600;font-size:15px}
+.rd-card:hover{border-color:var(--cta)}
+.rd-card img{width:100%;height:auto;border-radius:8px}
+.rd-card small{font-size:12px;font-weight:700;color:var(--cta)}
+.rd-more{margin-top:22px}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 24px;border-radius:999px;font-weight:700;font-size:15px;text-decoration:none;border:1.5px solid var(--cta);cursor:pointer;font-family:var(--sans);transition:background .15s,color .15s;line-height:1.4}
 .btn-fill{background:var(--cta);color:#fff}
 .btn-fill:hover{background:var(--cta-deep);border-color:var(--cta-deep)}
@@ -441,6 +449,16 @@ body.story-open{overflow:hidden}
 </header>
 
 <main id="view"></main>
+
+<section id="reading" hidden>
+  <div class="wrap">
+    <div class="sec-head"><h2>⟦rd.001⟧</h2><p>⟦rd.002⟧</p></div>
+    <h3 class="rd-h">⟦rd.003⟧</h3><div class="rd-grid" id="rdStd"></div>
+    <h3 class="rd-h">⟦rd.004⟧</h3><div class="rd-grid" id="rdTrend"></div>
+    <div id="rdVidWrap" hidden><h3 class="rd-h">⟦rd.005⟧</h3><div class="rd-grid" id="rdVid"></div></div>
+    <p class="rd-more"><a href="https://www.ak-analytics.jp/blog">⟦rd.006⟧</a></p>
+  </div>
+</section>
 
 <section class="contact" id="contact" data-wix="⟦contact.001⟧">
   <div class="wrap contact-grid">
@@ -882,4 +900,16 @@ $('#wixBtn').onclick=()=>{const on=document.body.classList.toggle('wix-on');$('#
 let pk='a';try{pk=localStorage.getItem('ka-pal')||'a';}catch(e){}if(!PALETTES[pk])pk='a';applyPal(pk);
 
 show((location.hash||'#a').slice(1));
+
+// 読みもの・動画（ka-lp の /api/reading。毎週入れ替え）
+fetch('https://lp-kenko-check.ak-analytics.jp/api/reading').then(r=>r.ok?r.json():null).then(d=>{
+  const st=d&&d.sites&&d.sites['A']; if(!st) return;
+  const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const post=x=>`<a class="rd-card" href="${encodeURI(x.url)}"><small>⟦rd.007⟧</small>${esc(x.title)}</a>`;
+  const vid=v=>`<a class="rd-card" href="https://www.youtube.com/watch?v=${esc(v.yt)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${esc(v.yt)}/mqdefault.jpg" alt="" loading="lazy" width="320" height="180"><small>⟦rd.008⟧</small>${esc(v.title)}</a>`;
+  $('#rdStd').innerHTML=(st.standard||[]).map(post).join('');
+  $('#rdTrend').innerHTML=(st.trending||[]).map(post).join('');
+  if((st.videos||[]).length){$('#rdVid').innerHTML=st.videos.map(vid).join('');$('#rdVidWrap').hidden=false;}
+  $('#reading').hidden=false;
+}).catch(()=>{});
 </script>
