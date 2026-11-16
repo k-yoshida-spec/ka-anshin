@@ -37,6 +37,17 @@ section{padding-block:76px;position:relative}
 .chap{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--sage-ink)}
 .chap b{font-family:var(--serif);width:32px;height:32px;border-radius:50%;border:1.5px solid var(--sage);display:grid;place-items:center;letter-spacing:0;font-size:13px}
 
+.ks{margin-top:40px}
+.ks-h{font-size:19px;margin:0 0 6px}
+.ks-lead{margin:0 0 16px;color:var(--muted);font-size:14px}
+.ks-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+.ks-card{position:relative;display:flex;flex-direction:column;padding:0;overflow:hidden;text-align:left;cursor:pointer;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:14px;transition:border-color .2s,transform .2s}
+.ks-card:hover{border-color:var(--cta);transform:translateY(-2px)}
+.ks-card img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:cover}
+.ks-play{position:absolute;top:10px;right:10px;width:40px;height:40px;border-radius:50%;background:var(--cta);color:#fff;display:grid;place-items:center;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,.2)}
+.ks-t{display:flex;flex-direction:column;gap:4px;padding:12px 14px 14px;font-weight:700;font-size:14.5px;line-height:1.5}
+.ks-t small{font-size:12px;color:var(--cta)}
+@media (max-width:640px){.ks-grid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;gap:12px;padding-bottom:6px}.ks-card{flex:0 0 62%;scroll-snap-align:start}}
 #reading{background:var(--wash)}
 .rd-h{font-size:17px;margin:26px 0 12px}
 .rd-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
@@ -731,6 +742,7 @@ function hub(){
     <div class="story-cta" data-wix="⟦chat.077⟧"><img src="${IMG.face}" alt=""><p><b>⟦chat.078⟧</b>⟦chat.079⟧</p><button class="btn btn-ghost" type="button" data-story="consult">⟦chat.080⟧</button></div>
     <div class="coord"><h3>⟦chat.081⟧<br>⟦chat.082⟧</h3>
       <ol><li><div>⟦chat.083⟧<span>⟦chat.084⟧</span></div></li><li><div>⟦chat.085⟧<span>⟦chat.086⟧</span></div></li><li><div>⟦chat.087⟧<span>⟦chat.088⟧</span></div></li></ol></div>
+    <div class="ks"><h3 class="ks-h">⟦ks.001⟧</h3><p class="ks-lead">⟦ks.002⟧</p><div class="ks-grid"><button type="button" class="ks-card" data-story="ep06"><img src="https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep06_1.webp" alt="" loading="lazy" width="490" height="490"><span class="ks-play" aria-hidden="true">▶</span><span class="ks-t"><small>⟦ks.003⟧</small>第6話｜なんとなく、会社に行きたくない</span></button><button type="button" class="ks-card" data-story="ep05"><img src="https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep05_1.webp" alt="" loading="lazy" width="490" height="490"><span class="ks-play" aria-hidden="true">▶</span><span class="ks-t"><small>⟦ks.003⟧</small>第5話｜部下が本音を話してくれない</span></button></div></div>
   </div></section>
 
   <section id="services" data-wix="⟦services.001⟧"><div class="wrap">
@@ -861,7 +873,7 @@ const STORIES={consult:{title:'⟦contact.037⟧',scenes:[
  ['⟦STORIES.008⟧','{{S3}}',[['⟦STORIES.005⟧','⟦STORIES.009⟧'],['⟦STORIES.002⟧','⟦STORIES.010⟧']]],
  ['⟦STORIES.011⟧','{{S4}}',[['⟦STORIES.005⟧','⟦STORIES.012⟧'],['⟦STORIES.002⟧','⟦STORIES.013⟧']]],
  ['⟦STORIES.014⟧','{{S5}}',[['⟦STORIES.005⟧','⟦STORIES.015⟧'],['⟦STORIES.002⟧','⟦STORIES.016⟧']]],
- ['⟦STORIES.017⟧','{{S6}}',[['⟦STORIES.005⟧','⟦STORIES.018⟧'],['⟦STORIES.002⟧','⟦STORIES.019⟧']]]]}};
+ ['⟦STORIES.017⟧','{{S6}}',[['⟦STORIES.005⟧','⟦STORIES.018⟧'],['⟦STORIES.002⟧','⟦STORIES.019⟧']]]]},ep06:{title:"第6話｜なんとなく、会社に行きたくない",scenes:[['場面1','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep06_1.webp',[]],['場面2','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep06_2.webp',[]],['場面3','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep06_3.webp',[]],['場面4','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep06_4.webp',[]],['場面5','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep06_5.webp',[]],['場面6','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep06_6.webp',[]]]},ep05:{title:"第5話｜部下が本音を話してくれない",scenes:[['場面1','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep05_1.webp',[]],['場面2','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep05_2.webp',[]],['場面3','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep05_3.webp',[]],['場面4','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep05_4.webp',[]],['場面5','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep05_5.webp',[]],['場面6','https://lp-kenko-check.ak-analytics.jp/shared/kamishibai/ep05_6.webp',[]]]}};
 const SDUR=6500; let S=null,si=0,splay=true,sel=0,slast=0,sraf=0,sOpener=null;
 function sShow(i){
   const n=S.scenes.length; si=(i+n)%n; sel=0;
