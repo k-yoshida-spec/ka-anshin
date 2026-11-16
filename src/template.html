@@ -39,12 +39,33 @@ section{padding-block:76px;position:relative}
 
 #reading{background:var(--wash)}
 .rd-h{font-size:17px;margin:26px 0 12px}
-.rd-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;align-items:start}
-.rd-card{display:flex;flex-direction:column;gap:6px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;text-decoration:none;color:inherit;line-height:1.6;font-weight:600;font-size:15px}
-.rd-card:hover{border-color:var(--cta)}
-.rd-card img{width:100%;height:auto;border-radius:8px}
-.rd-card small{font-size:12px;font-weight:700;color:var(--cta)}
+.rd-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
+@media (max-width:900px){.rd-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.rd-card{display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;text-decoration:none;color:inherit;transition:border-color .2s,transform .2s}
+.rd-card:hover{border-color:var(--cta);transform:translateY(-2px)}
+.rd-img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;background:var(--wash)}
+.rd-body{display:flex;flex-direction:column;gap:6px;padding:14px 16px 16px}
+.rd-body small{font-size:12px;font-weight:700;color:var(--cta)}
+.rd-body b{font-size:15px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rd-body time{font-size:12px;color:var(--muted)}
 .rd-more{margin-top:22px}
+.rd-strip:empty{display:none}
+.rd-strip{border-bottom:1px solid var(--line);background:var(--surface)}
+.rd-strip .wrap{display:flex;align-items:center;gap:12px;padding-top:10px;padding-bottom:10px;font-size:14px}
+.rd-strip .lbl{flex:none;font-size:12px;font-weight:700;color:#fff;background:var(--cta);border-radius:999px;padding:3px 10px}
+.rd-strip a{display:flex;align-items:center;gap:10px;min-width:0;color:inherit;text-decoration:none;font-weight:600}
+.rd-strip a:hover{text-decoration:underline}
+.rd-strip img{flex:none;width:64px;height:36px;object-fit:cover;border-radius:6px}
+.rd-strip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rd-strip .all{flex:none;margin-left:auto;font-size:13px;font-weight:600}
+@media (max-width:640px){
+.rd-grid{grid-template-columns:1fr;gap:10px}
+.rd-card{flex-direction:row;align-items:stretch}
+.rd-img{width:120px;flex:none;aspect-ratio:16/9;height:auto;align-self:center;margin:10px 0 10px 10px;border-radius:8px}
+.rd-body{padding:10px 12px;gap:4px}
+.rd-body b{font-size:14px}
+.rd-strip .all{display:none}
+}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 24px;border-radius:999px;font-weight:700;font-size:15px;text-decoration:none;border:1.5px solid var(--cta);cursor:pointer;font-family:var(--sans);transition:background .15s,color .15s;line-height:1.4}
 .btn-fill{background:var(--cta);color:#fff}
 .btn-fill:hover{background:var(--cta-deep);border-color:var(--cta-deep)}
@@ -453,6 +474,7 @@ body.story-open{overflow:hidden}
 <section id="reading" hidden>
   <div class="wrap">
     <div class="sec-head"><h2>⟦rd.001⟧</h2><p>⟦rd.002⟧</p></div>
+    <h3 class="rd-h">⟦rd.009⟧</h3><div class="rd-grid" id="rdNew"></div>
     <h3 class="rd-h">⟦rd.003⟧</h3><div class="rd-grid" id="rdStd"></div>
     <h3 class="rd-h">⟦rd.004⟧</h3><div class="rd-grid" id="rdTrend"></div>
     <div id="rdVidWrap" hidden><h3 class="rd-h">⟦rd.005⟧</h3><div class="rd-grid" id="rdVid"></div></div>
@@ -667,6 +689,7 @@ function hub(){
       <li><small>⟦chat.030⟧</small><b>⟦chat.031⟧</b>⟦chat.032⟧</li>
     </ul>
   </div></div>
+  <div class="rd-strip" id="rdStrip"></div>
 
   <section id="story-why" data-wix="⟦chat.033⟧"><div class="wrap">
     <div class="sec-head"><div class="chap"><b>01</b>⟦chat.034⟧</div><h2><span class="nw">⟦chat.035⟧</span><span class="nw">⟦chat.036⟧</span><br><span class="nw">⟦chat.037⟧</span><span class="nw">⟦chat.038⟧</span></h2></div>
@@ -861,6 +884,7 @@ function show(id,then){
   const l=LPS.find(x=>x.id===id&&!x.cardOnly);
   $('#view').innerHTML=l?lp(l):hub();
   setFrom(l||null);
+  if(window.fillStrip)fillStrip();
   if($('#lpGrid')){document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{stage=b.dataset.stage;renderList();});document.querySelectorAll('.who').forEach(b=>b.onclick=()=>{who=who===b.dataset.who?null:b.dataset.who;renderList();});renderList();}
   if(location.hash.slice(1)!==(l?l.id:'a')) history.replaceState(null,'','#'+(l?l.id:'a'));
   if(then){const t=document.getElementById(then);if(t){t.scrollIntoView();return;}}
@@ -901,14 +925,22 @@ let pk='a';try{pk=localStorage.getItem('ka-pal')||'a';}catch(e){}if(!PALETTES[pk
 
 show((location.hash||'#a').slice(1));
 
-// 読みもの・動画（ka-lp の /api/reading。毎週入れ替え）
+// 読みもの・動画（ka-lp の /api/reading。新着は Wix ブログの RSS から自動、ほかは毎週入れ替え）
+window.fillStrip=()=>{const el=$('#rdStrip'),x=window.RD_NEW&&window.RD_NEW[0];if(!el||!x)return;
+  const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  el.innerHTML=`<div class="wrap"><span class="lbl">⟦rd.010⟧</span><a href="${encodeURI(x.url)}">${x.img?`<img src="${esc(x.img)}" alt="" width="64" height="36">`:''}<span>${esc(x.title)}</span></a><a class="all" href="https://www.ak-analytics.jp/blog">⟦rd.006⟧</a></div>`;};
 fetch('https://lp-kenko-check.ak-analytics.jp/api/reading').then(r=>r.ok?r.json():null).then(d=>{
   const st=d&&d.sites&&d.sites['A']; if(!st) return;
   const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-  const post=x=>`<a class="rd-card" href="${encodeURI(x.url)}"><small>⟦rd.007⟧</small>${esc(x.title)}</a>`;
-  const vid=v=>`<a class="rd-card" href="https://www.youtube.com/watch?v=${esc(v.yt)}" target="_blank" rel="noopener"><img src="https://i.ytimg.com/vi/${esc(v.yt)}/mqdefault.jpg" alt="" loading="lazy" width="320" height="180"><small>⟦rd.008⟧</small>${esc(v.title)}</a>`;
+  const day=t=>t?`<time datetime="${esc(t)}">${esc(t.replace(/-/g,'.'))}</time>`:'';
+  const img=x=>x.img?`<img class="rd-img" src="${esc(x.img)}" alt="" loading="lazy" width="640" height="360">`:'';
+  const post=x=>`<a class="rd-card" href="${encodeURI(x.url)}">${img(x)}<span class="rd-body"><small>⟦rd.007⟧</small><b>${esc(x.title)}</b>${day(x.date)}</span></a>`;
+  const vid=v=>`<a class="rd-card" href="https://www.youtube.com/watch?v=${esc(v.yt)}" target="_blank" rel="noopener"><img class="rd-img" src="https://i.ytimg.com/vi/${esc(v.yt)}/mqdefault.jpg" alt="" loading="lazy" width="320" height="180"><span class="rd-body"><small>⟦rd.008⟧</small><b>${esc(v.title)}</b></span></a>`;
+  const news=(d.latest||[]).slice(0,3), seen=new Set(news.map(x=>x.url));
+  window.RD_NEW=news; fillStrip();
+  $('#rdNew').innerHTML=news.map(post).join('');
   $('#rdStd').innerHTML=(st.standard||[]).map(post).join('');
-  $('#rdTrend').innerHTML=(st.trending||[]).map(post).join('');
+  $('#rdTrend').innerHTML=(st.trending||[]).filter(x=>!seen.has(x.url)).map(post).join('');
   if((st.videos||[]).length){$('#rdVid').innerHTML=st.videos.map(vid).join('');$('#rdVidWrap').hidden=false;}
   $('#reading').hidden=false;
 }).catch(()=>{});
