@@ -356,18 +356,9 @@ body.wix-on header.site[data-wix]::after{top:auto;bottom:-30px}
 .contact .info{margin-top:20px;display:grid;gap:6px;font-size:14.5px}
 .contact .info span{color:var(--faint);display:inline-block;width:6em}
 .contact .side img{width:84px;margin-top:22px}
-.contact .how-h{font-weight:700;margin:18px 0 10px}
-.contact .how{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.contact .how-c{font:inherit;cursor:pointer;display:grid;justify-items:center;align-content:start;gap:4px;padding:16px 10px;border-radius:16px;background:#fff;border:1.5px solid var(--line);color:inherit;text-decoration:none;text-align:center;transition:border-color .2s,transform .2s}
-.contact .how-c:hover{border-color:var(--accent,var(--fg));transform:translateY(-2px)}
-.contact .how-c i{font-style:normal;font-size:24px;line-height:1}
-.contact .how-c b{font-size:16px}
-.contact .how-c small{font-size:12px;color:var(--muted)}
-.contact .how-go{margin-top:6px;background:var(--fg);color:#fff;border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;white-space:nowrap}
-.contact .side p.how-n{font-size:12.5px;margin-top:8px}
-#inq{scroll-margin-top:90px}
-@media(max-width:860px){.contact .how-c span.how-go{font-size:13px}}
-@media(max-width:380px){.contact .how{grid-template-columns:1fr}}
+.contact .info a.tel{color:inherit;font-weight:700;text-decoration:none}.contact .info a.tel:hover{text-decoration:underline}
+.contact .info .tel-n{margin-left:8px;font-size:12px;color:var(--faint)}
+@media(max-width:420px){.contact .info .tel-n{display:none}}
 form.inq{background:var(--surface);border:1px solid var(--line);border-radius:var(--rl);padding:26px;display:grid;gap:16px}
 .from{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:12.5px;color:var(--muted);background:var(--sage-pale);border-radius:10px;padding:7px 12px}
 .from b{color:var(--sage-deep)} .from code{font-size:11.5px;color:var(--faint)}
@@ -522,14 +513,9 @@ body.story-open{overflow:hidden}
       <div class="chap"><b>✉</b>⟦contact.002⟧</div>
       <h2>⟦contact.003⟧</h2>
       <p>⟦contact.004⟧</p>
-      <p class="how-h">ご相談しやすい方法をお選びください</p>
-      <div class="how">
-        <button type="button" class="how-c" onclick="var f=this.getRootNode().getElementById('inq');if(f)f.scrollIntoView({behavior:'smooth',block:'start'})"><i aria-hidden="true">📝</i><b>フォームで送る</b><small>24時間受付・2営業日以内にご返信</small><span class="how-go">フォームへ進む</span></button>
-        <a class="how-c" href="tel:05017851738"><i aria-hidden="true">📞</i><b>電話で相談する</b><small>AIが24時間受付・担当者から折り返し</small><span class="how-go">050-1785-1738</span></a>
-      </div>
-      <p class="how-n">電話ではAIがご用件をうかがいます。お名前とご用件だけで大丈夫です。（営業時間 平日9:00〜18:00）</p>
       <div class="info">
         <div><span>⟦contact.005⟧</span>contact@ak-analytics.jp</div>
+        <div><span>⟦contact.006⟧</span><a class="tel" href="tel:05017851738">050-1785-1738</a><small class="tel-n">（AIが24時間受付）</small></div>
         <div><span>⟦contact.007⟧</span>⟦contact.008⟧</div>
       </div>
       <img src="{{FACE}}" alt="" aria-hidden="true">
