@@ -359,6 +359,21 @@ body.wix-on header.site[data-wix]::after{top:auto;bottom:-30px}
 .contact .info a.tel{color:inherit;font-weight:700;text-decoration:none}.contact .info a.tel:hover{text-decoration:underline}
 .contact .info .tel-n{margin-left:8px;font-size:12px;color:var(--faint)}
 @media(max-width:420px){.contact .info .tel-n{display:none}}
+.inq-col{display:grid;gap:14px;align-content:start;min-width:0}
+.how-h{font-weight:700;margin:0}
+.how{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.how-b{font:inherit;cursor:pointer;display:grid;justify-items:center;align-content:start;gap:4px;padding:20px 12px;border-radius:var(--rl);background:var(--surface);border:1.5px solid var(--line);color:inherit;text-decoration:none;text-align:center;transition:border-color .2s,box-shadow .2s,transform .2s}
+.how-b:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.06)}
+.how-b[aria-expanded="true"]{border-color:var(--fg);box-shadow:inset 0 0 0 1px var(--fg)}
+.how-b i{font-style:normal;font-size:26px;line-height:1}
+.how-b b{font-size:17px}
+.how-b small{font-size:12.5px;color:var(--muted)}
+.tel-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--rl);padding:22px;text-align:center;display:grid;gap:6px}
+.tel-panel[hidden],form.inq[hidden]{display:none}
+.tel-panel p{margin:0;color:var(--muted);font-size:14px}
+.tel-panel a{font-size:30px;font-weight:800;letter-spacing:.04em;color:var(--fg);text-decoration:none}
+.tel-panel small{color:var(--muted);font-size:12.5px}
+@media(max-width:380px){.how{grid-template-columns:1fr}}
 form.inq{background:var(--surface);border:1px solid var(--line);border-radius:var(--rl);padding:26px;display:grid;gap:16px}
 .from{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;font-size:12.5px;color:var(--muted);background:var(--sage-pale);border-radius:10px;padding:7px 12px}
 .from b{color:var(--sage-deep)} .from code{font-size:11.5px;color:var(--faint)}
@@ -520,7 +535,14 @@ body.story-open{overflow:hidden}
       </div>
       <img src="{{FACE}}" alt="" aria-hidden="true">
     </div>
-    <form class="inq" id="inq" novalidate>
+    <div class="inq-col">
+      <p class="how-h">ご相談しやすい方法をお選びください</p>
+      <div class="how">
+        <button type="button" class="how-b" id="howForm" aria-expanded="false" aria-controls="inq"><i aria-hidden="true">📝</i><b>フォームで送る</b><small>24時間受付・2営業日以内にご返信</small></button>
+        <a class="how-b" id="howTel" href="tel:05017851738" aria-expanded="false" aria-controls="telPanel"><i aria-hidden="true">📞</i><b>電話で相談する</b><small>AIが24時間受付・担当者から折り返し</small></a>
+      </div>
+      <div class="tel-panel" id="telPanel" hidden><p>お電話はこちらへ</p><a href="tel:05017851738">050-1785-1738</a><small>AIがご用件をうかがい、担当者から折り返します（営業時間 平日9:00〜18:00）</small></div>
+    <form class="inq" id="inq" novalidate hidden>
       <div class="from">⟦contact.009⟧: <b id="fromName">⟦contact.010⟧</b><code id="fromId">source=a-hub</code></div>
       <fieldset>
         <legend>⟦contact.011⟧</legend>
@@ -545,6 +567,7 @@ body.story-open{overflow:hidden}
       <div><button class="btn btn-fill" type="submit">⟦contact.030⟧</button></div>
       <p class="sent" id="sent" hidden>⟦contact.031⟧</p>
     </form>
+    </div>
   </div>
 </section>
 
@@ -866,7 +889,18 @@ function setFrom(l){
   $('#area-a').checked=true;
   document.querySelectorAll('#inq input[type=checkbox]').forEach(i=>i.checked=false);
   pre=l?(LP_INTEREST[l.id]||[]):[]; renderSurvey();
+  if(l&&window.kaOpenForm)window.kaOpenForm();
 }
+/* お問い合わせ：方法を選ぶ（フォームは下に開く／電話はスマホで発信・パソコンは番号を表示） */
+(()=>{const fb=$('#howForm'),tb=$('#howTel'),f=$('#inq'),tp=$('#telPanel');if(!fb||!f)return;
+  const pc=()=>matchMedia('(hover:hover) and (pointer:fine)').matches;
+  const show=(which)=>{const fo=which==='form'&&f.hidden,to=which==='tel'&&tp.hidden;
+    f.hidden=!fo;fb.setAttribute('aria-expanded',fo);tp.hidden=!to;tb.setAttribute('aria-expanded',to);
+    const t=fo?f:to?tp:null;if(t)setTimeout(()=>t.scrollIntoView({behavior:'smooth',block:'nearest'}),30);};
+  fb.addEventListener('click',()=>show('form'));
+  tb.addEventListener('click',e=>{if(pc()){e.preventDefault();show('tel');}});
+  window.kaOpenForm=()=>{if(f.hidden)show('form');};
+})();
 
 
 ⟦setFrom.001⟧
