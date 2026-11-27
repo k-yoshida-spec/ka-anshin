@@ -403,12 +403,27 @@ footer.site .fdiag span{font-weight:600;color:var(--muted)}
 footer.site .fmark{display:flex;align-items:center;gap:10px}
 footer.site .fmark img{width:34px}
 
-/* mobile sticky CTA */
-.dock{display:none}
-@media(max-width:760px){
-  .dock{display:flex;gap:8px;position:fixed;left:0;right:0;bottom:0;z-index:12;background:color-mix(in srgb,var(--surface) 94%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line);padding:10px max(12px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))}
-  .dock .btn{flex:1;padding:11px 10px;font-size:14px}
-}
+/* 画面下の問い合わせバー（メインページと同じ動き） */
+.ctab{position:fixed;left:0;right:0;bottom:0;z-index:40;background:rgba(255,248,236,.97);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-top:1px solid #F1D9B5;box-shadow:0 -10px 30px rgba(22,33,46,.08);transform:translateY(110%);transition:transform .35s cubic-bezier(.2,.8,.2,1);padding-bottom:env(safe-area-inset-bottom,0px);font-family:'Noto Sans JP','Hiragino Sans','Yu Gothic','Meiryo',sans-serif;color:#16212E;line-height:1.5}
+.ctab.on{transform:none}
+.ctab *{box-sizing:border-box}
+.ctab-in{display:flex;align-items:center;gap:22px;min-height:84px;position:relative;max-width:1160px;margin:0 auto;padding:0 20px}
+.ctab-tel{display:grid;text-decoration:none;color:#16212E;line-height:1.3;padding-right:22px;border-right:1px solid #EAD5B4}
+.ctab-lb{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700}
+.ctab-lb i{width:10px;height:10px;border-radius:50%;border:3px solid #E5866B}
+.ctab-tel b{font-family:'Zen Kaku Gothic New','Hiragino Sans','Yu Gothic',sans-serif;font-size:26px;font-weight:900;letter-spacing:.03em}
+.ctab-tel small{font-size:11.5px;color:#556272}
+.ctab-acts{margin-left:auto;display:flex;gap:10px;align-items:center}
+.ctab-btn{display:inline-flex;align-items:center;gap:10px;padding:13px 22px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;color:#fff;background:linear-gradient(135deg,#2563B0,#23774F);box-shadow:0 8px 20px rgba(37,99,176,.22);white-space:nowrap}
+.ctab-btn.sub{background:#fff;color:#16212E;border:1.5px solid #E3D3BB;box-shadow:none}
+.ctab-free{font-size:11px;background:rgba(255,255,255,.22);border-radius:6px;padding:2px 6px}
+.ctab-ts{display:none}
+.ctab-x{position:absolute;right:-6px;top:6px;border:0;background:none;font-size:18px;color:#8794A3;cursor:pointer;padding:4px 8px}
+@media(max-width:760px){.ctab-in{gap:8px;min-height:64px;padding:8px 76px 8px 12px}
+  .ctab-tel{flex:1;display:flex;align-items:center;justify-content:center;background:#fff;border:1.5px solid #E3D3BB;border-radius:12px;min-height:48px;padding:0}
+  .ctab-tel .ctab-lb,.ctab-tel small{display:none}.ctab-tel b{font-size:0}.ctab-tel b::before{font-family:'Noto Sans JP',sans-serif;font-size:15px;content:"📞 電話で相談"}
+  .ctab-acts{flex:1.2;margin:0}.ctab-btn{flex:1;justify-content:center;padding:13px 8px;min-height:48px}.ctab-btn.sub,.ctab-x,.ctab-free,.ctab-t{display:none}.ctab-ts{display:inline;font-size:14px}}
+@media(prefers-reduced-motion:reduce){.ctab{transition:none}}
 
 
 /* characters */
@@ -601,10 +616,11 @@ body.story-open{overflow:hidden}
   </div>
 </div>
 
-<div class="dock" data-wix="⟦contact.045⟧">
-  <a class="btn btn-ghost" href="https://lp-kenko-check.ak-analytics.jp/"><span class="min">⟦contact.043⟧</span>⟦contact.044⟧</a>
-  <a class="btn btn-fill" href="#contact" data-scroll="contact">⟦page.021⟧</a>
-</div>
+<div class="ctab" id="ctaBar" aria-hidden="true"><div class="ctab-in">
+  <a class="ctab-tel" href="tel:05017851738"><span class="ctab-lb"><i aria-hidden="true"></i>お電話でのご相談</span><b>050-1785-1738</b><small>AIが24時間受付・担当者から折り返し</small></a>
+  <div class="ctab-acts"><a class="ctab-btn sub" href="https://lp-kenko-check.ak-analytics.jp/">健康チェック（約10分）</a><a class="ctab-btn" href="#contact" id="ctaForm"><span class="ctab-free">無料</span><span class="ctab-t">フォームで相談する</span><span class="ctab-ts">フォームで無料相談</span></a></div>
+  <button type="button" class="ctab-x" id="ctaX" aria-label="閉じる">×</button>
+</div></div>
 
 <script>
 'use strict';
@@ -900,6 +916,19 @@ function setFrom(l){
   fb.addEventListener('click',()=>show('form'));
   tb.addEventListener('click',e=>{if(pc()){e.preventDefault();show('tel');}});
   window.kaOpenForm=()=>{if(f.hidden)show('form');};
+})();
+/* 画面下の問い合わせバー */
+(()=>{const Q=s=>document.querySelector(s);const bar=Q('#ctaBar');if(!bar)return;
+  const contact=Q('#contact');let closed=false,t=0,inContact=false,lastY=window.scrollY;
+  try{closed=sessionStorage.getItem('kaCtaClosed')==='1'}catch(e){}
+  const can=()=>!closed&&!inContact&&window.scrollY>500;
+  const show=v=>{bar.classList.toggle('on',v);bar.setAttribute('aria-hidden',v?'false':'true');};
+  window.addEventListener('scroll',()=>{const y=window.scrollY,up=y<lastY-2;lastY=y;clearTimeout(t);
+    if(up)show(can());else show(false);
+    t=setTimeout(()=>show(can()),600);},{passive:true});
+  if(contact&&window.IntersectionObserver)new IntersectionObserver(es=>{inContact=es[0].isIntersecting;if(inContact)show(false);},{threshold:.15}).observe(contact);
+  Q('#ctaX').addEventListener('click',()=>{closed=true;show(false);try{sessionStorage.setItem('kaCtaClosed','1')}catch(e){}});
+  Q('#ctaForm').addEventListener('click',e=>{e.preventDefault();const c=Q('#contact');if(c)c.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>{window.kaOpenForm&&window.kaOpenForm();},500);});
 })();
 
 
